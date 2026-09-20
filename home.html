@@ -715,56 +715,85 @@
     // Hạn mức thu hoạch tối đa 1000 Đồng Vàng mỗi ngày
     const DAILY_GOLD_MAX = 1000;
 
-    // CHU KỲ KINH TẾ 24H: 12 Ô Cà rốt (15p/vụ) trồng kín 24h = ~30.000 Vàng
-    // 24h = 1440 phút. 1440 / 15 = 96 vụ. 12 ô * 96 vụ = 1152 cây cà rốt.
-    // Để được ~30.000 vàng -> 1 cây cà rốt bán giá ~ 26 Vàng.
+    // CHU KỲ KINH TẾ ĐƯỢC CÂN BẰNG LẠI (Tỷ lệ Bạc tương đương Vàng)
+    // Giá trị nông sản dao động theo từng ngày nhưng luôn đảm bảo có lãi
     const CROPS_DEF = {
       carrot: {
         id: 'carrot',
         name: 'Cà Rốt',
         icon: '🥕',
-        seedCost: 2,        // 2 Đồng Bạc
+        seedCost: 1,        // 1 Đồng Bạc
         growthSeconds: 900, // 15 phút
-        sellValue: 26,      // 26 Đồng Vàng
+        baseSellValue: 3,   // 3 Đồng Vàng (Sẽ dao động hàng ngày)
         expGain: 15
       },
       corn: {
         id: 'corn',
         name: 'Bắp Ngô',
         icon: '🌽',
-        seedCost: 5,
+        seedCost: 3,        // 3 Đồng Bạc
         growthSeconds: 3600, // 1 giờ
-        sellValue: 110,      // 110 Đồng Vàng
+        baseSellValue: 8,   // 8 Đồng Vàng
         expGain: 45
       },
       strawberry: {
         id: 'strawberry',
         name: 'Dâu Tây',
         icon: '🍓',
-        seedCost: 15,
+        seedCost: 10,       // 10 Đồng Bạc
         growthSeconds: 14400, // 4 giờ
-        sellValue: 480,       // 480 Đồng Vàng
+        baseSellValue: 28,  // 28 Đồng Vàng
         expGain: 120
       },
       pumpkin: {
         id: 'pumpkin',
         name: 'Bí Ngô',
         icon: '🎃',
-        seedCost: 30,
+        seedCost: 20,       // 20 Đồng Bạc
         growthSeconds: 28800, // 8 giờ
-        sellValue: 1000,      // 1000 Đồng Vàng
+        baseSellValue: 60,  // 60 Đồng Vàng
         expGain: 350
       }
     };
 
-    // Giá mua 1 Bình Nước Tưới Cây: 2 Đồng Bạc
-    const WATER_CAN_COST = 2;
+    // Hàm tính giá biến động theo ngày (từ -20% đến +20%)
+    function getDailyPrice(cropId) {
+      const today = new Date().toDateString();
+      let hash = 0;
+      const str = today + cropId;
+      for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const randomValue = Math.abs(Math.sin(hash)); // Sinh giá trị 0 đến 1
+      const fluctuationPercent = (randomValue * 0.4) - 0.2; // Từ -20% đến +20%
+      
+      const basePrice = CROPS_DEF[cropId].baseSellValue;
+      let currentPrice = Math.round(basePrice * (1 + fluctuationPercent));
+      
+      // Đảm bảo không bao giờ bán lỗ (giá bán luôn > giá hạt + 1)
+      const minPrice = CROPS_DEF[cropId].seedCost + 1;
+      if (currentPrice < minPrice) currentPrice = minPrice;
+      
+      return currentPrice;
+    }
 
-    // Chi phí mở khóa ô đất bằng ĐỒNG VÀNG 🪙 (Cân đối lại để phù hợp thu nhập 30k/ngày)
+    // Lấy giao diện biểu đồ xu hướng giá để hiển thị
+    function getPriceTrendHtml(cropId) {
+      const current = getDailyPrice(cropId);
+      const base = CROPS_DEF[cropId].baseSellValue;
+      if (current > base) return '<span class="text-emerald-600 font-black" title="Giá đang tăng">📈</span>';
+      if (current < base) return '<span class="text-red-500 font-black" title="Giá đang giảm">📉</span>';
+      return '<span class="text-stone-500 font-black" title="Giá bình ổn">➖</span>';
+    }
+
+    // Giá mua 1 Bình Nước Tưới Cây: 1 Đồng Bạc
+    const WATER_CAN_COST = 1;
+
+    // Chi phí mở khóa ô đất bằng ĐỒNG VÀNG 🪙 (Cân đối lại theo kinh tế tỷ giá mới)
     const PLOT_UNLOCK_GOLD_COSTS = [
       0, 0, 0, 0,         // 4 ô đầu mở sẵn miễn phí
-      1000, 3000, 6000, 10000, // Hàng 2
-      15000, 22000, 30000, 40000 // Hàng 3
+      50, 150, 300, 500,  // Hàng 2
+      1000, 2000, 3500, 5000 // Hàng 3
     ];
 
     const STORAGE_KEY_PREFIX = 'cozy_farm_v3_state_';
@@ -1769,7 +1798,9 @@
       for (const key in CROPS_DEF) {
         const def = CROPS_DEF[key];
         const owned = gameState.barn[key] || 0;
-        estTotal += (owned * def.sellValue);
+        const currentPrice = getDailyPrice(key);
+        const trendHtml = getPriceTrendHtml(key);
+        estTotal += (owned * currentPrice);
 
         const card = document.createElement('div');
         card.className = 'bg-white p-2.5 rounded-2xl border-2 border-stone-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2';
@@ -1778,7 +1809,7 @@
             <span class="text-3xl">${def.icon}</span>
             <div>
               <div class="text-xs font-black text-cozy-woodDark">${def.name} <span class="text-[11px] text-stone-500 font-bold">(Có: <span id="barnOwned_${key}" class="text-emerald-700 font-black">${owned}</span>)</span></div>
-              <div class="text-[10px] font-bold text-amber-700">Giá bán: ${def.sellValue} 🪙 / quả</div>
+              <div class="text-[10px] font-bold text-amber-700">Giá thị trường: ${currentPrice} 🪙 / quả ${trendHtml}</div>
             </div>
           </div>
 
@@ -1832,8 +1863,9 @@
       }
 
       const def = CROPS_DEF[cropKey];
+      const currentPrice = getDailyPrice(cropKey);
       const sellQty = Math.min(owned, qty);
-      const goldEarned = sellQty * def.sellValue;
+      const goldEarned = sellQty * currentPrice;
 
       gameState.barn[cropKey] -= sellQty;
       gameState.goldCoins += goldEarned;
@@ -1850,9 +1882,9 @@
       let totalItems = 0;
       for (const key in CROPS_DEF) {
         const count = gameState.barn[key] || 0;
-        const val = CROPS_DEF[key].sellValue;
+        const currentPrice = getDailyPrice(key);
         if (count > 0) {
-          const gain = count * val;
+          const gain = count * currentPrice;
           totalItems += count;
           totalEarned += gain;
           gameState.barn[key] = 0;
@@ -1914,6 +1946,7 @@
         const def = CROPS_DEF[key];
         const owned = gameState.seeds[key] || 0;
         const maxCanBuy = Math.max(1, Math.floor(gameState.copperCoins / def.seedCost));
+        const currentPrice = getDailyPrice(key);
 
         const card = document.createElement('div');
         card.className = 'bg-white p-3 rounded-2xl border-2 border-stone-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5';
@@ -1922,8 +1955,8 @@
             <span class="text-3xl">${def.icon}</span>
             <div>
               <div class="text-xs font-black text-cozy-woodDark">Gói Hạt ${def.name} <span class="text-[10px] text-stone-500 font-bold">(Có: ${owned})</span></div>
-              <div class="text-[10px] font-bold text-stone-500">Lớn sau ${formatTimeSec(def.growthSeconds)} • Bán ${def.sellValue} 🪙</div>
-              <div class="text-xs font-black text-cozy-copper">Giá: ${def.seedCost} 🟤 / hạt</div>
+              <div class="text-[10px] font-bold text-stone-500">Lớn sau ${formatTimeSec(def.growthSeconds)} • Bán giá ~${currentPrice} 🪙</div>
+              <div class="text-xs font-black text-cozy-copper">Giá mua: ${def.seedCost} 🟤 / hạt</div>
             </div>
           </div>
 
@@ -2049,23 +2082,52 @@
       if (countLbl) countLbl.textContent = `${history.length} mã`;
 
       if (history.length === 0) {
-        container.innerHTML = `<div class="text-[11px] text-stone-500 text-center py-2">Chưa có mã nào được đổi. Hãy bán nông sản tích Đồng Vàng nhé!</div>`;
+        container.innerHTML = `<div class="text-[11px] text-stone-500 text-center py-4">Chưa có mã nào được đổi.<br>Hãy thu hoạch và bán nông sản tích Đồng Vàng nhé!</div>`;
         return;
       }
 
+      // Đọc trạng thái từ Admin và Requests để cập nhật tình trạng mã
+      let adminData = { cashedVouchers: [] };
+      try { adminData = JSON.parse(localStorage.getItem('cozy_farm_admin_data')) || {cashedVouchers:[]}; } catch(e){}
+      let requests = [];
+      try { requests = JSON.parse(localStorage.getItem('cozy_farm_withdraw_requests')) || []; } catch(e){}
+
       container.innerHTML = '';
+      
+      // Áp dụng class để tạo thành 1 khung cố định cuộn mượt mà
+      container.className = "max-h-56 overflow-y-auto space-y-2 pr-1 custom-scrollbar";
+
       history.forEach(item => {
+        // Kiểm tra trạng thái mã
+        let statusHtml = '<span class="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-black border border-emerald-200">🟢 Có thể rút</span>';
+        
+        const isCashed = adminData.cashedVouchers && adminData.cashedVouchers.some(v => v.code === item.code);
+        const req = requests.find(r => r.code === item.code);
+
+        if (isCashed || (req && req.status === 'approved')) {
+          statusHtml = '<span class="text-[9px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-black border border-slate-300">✅ Đã Thanh Toán</span>';
+        } else if (req && req.status === 'pending') {
+          statusHtml = '<span class="text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-black border border-amber-300">⏳ Đang Chờ Duyệt</span>';
+        } else if (req && req.status === 'rejected') {
+          statusHtml = '<span class="text-[9px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-black border border-red-300">❌ Bị Từ Chối</span>';
+        }
+
         const div = document.createElement('div');
-        div.className = 'bg-white p-2 rounded-xl border border-stone-300 flex items-center justify-between text-xs shadow-xs';
+        div.className = 'bg-white p-2.5 rounded-xl border-2 border-stone-200 flex flex-col gap-1.5 shadow-sm transition hover:border-amber-300';
         div.innerHTML = `
-          <div>
-            <span class="font-black text-cozy-woodDark">${item.code}</span>
-            <span class="text-[10px] text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded ml-1 font-bold">Mã ${item.value}</span>
-            <span class="text-[10px] text-stone-400 block">${item.createdAt} (-${item.cost} 🪙)</span>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <span class="font-black text-cozy-woodDark text-sm">${item.code}</span>
+              <span class="text-[10px] text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded font-bold">Mã ${item.value}</span>
+            </div>
+            ${statusHtml}
           </div>
-          <button onclick="copyVoucherCode('${item.code}')" class="farm-press bg-amber-100 hover:bg-amber-200 text-cozy-woodDark font-bold text-[11px] px-2.5 py-1 rounded-lg border border-cozy-woodDark shadow-farm-btn-sm">
-            Sao chép
-          </button>
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] text-stone-500 font-bold">${item.createdAt} (Chi: ${item.cost} 🪙)</span>
+            <button onclick="copyVoucherCode('${item.code}')" class="farm-press bg-amber-100 hover:bg-amber-200 text-cozy-woodDark font-black text-[10px] px-3 py-1 rounded-lg border border-cozy-woodDark shadow-farm-btn-sm flex items-center gap-1">
+              <span>📋</span> Copy Mã
+            </button>
+          </div>
         `;
         container.appendChild(div);
       });
@@ -2416,7 +2478,7 @@
 - Kho nông sản: Cà rốt (${gameState.barn.carrot || 0}), Bắp ngô (${gameState.barn.corn || 0}), Dâu tây (${gameState.barn.strawberry || 0}), Bí ngô (${gameState.barn.pumpkin || 0})
 - Túi hạt giống: Cà rốt (${gameState.seeds.carrot || 0}), Bắp ngô (${gameState.seeds.corn || 0}), Dâu tây (${gameState.seeds.strawberry || 0}), Bí ngô (${gameState.seeds.pumpkin || 0})
 - Thú cưng đồng hành: ${gameState.petIcon || '🐮'}
-- Cơ chế giá: Cà rốt (giá mua 3🟤, bán 5🪙), Bắp ngô (mua 6🟤, bán 12🪙), Dâu tây (mua 12🟤, bán 28🪙), Bí ngô (mua 20🟤, bán 50🪙), Bình nước (mua 2🟤).`;
+- Cơ chế giá trị trường (Biến động theo ngày): Cà rốt (mua 1🟤, bán ~3🪙), Bắp ngô (mua 3🟤, bán ~8🪙), Dâu tây (mua 10🟤, bán ~28🪙), Bí ngô (mua 20🟤, bán ~60🪙), Bình nước (mua 1🟤).`;
     }
 
     // TÍNH NĂNG 1: TƯ VẤN MÙA VỤ BẰNG GEMINI

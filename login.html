@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cổng Đăng Nhập - Đăng Ký - Nông Trại Mơ Mộng</title>
+  
+  <!-- Font chữ Nunito đồng bộ cho toàn trang web -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Tone.js phục vụ âm thanh tương tác sinh động -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Nunito', 'sans-serif'],
+          },
+          colors: {
+            cozy: {
+              cream: '#FFFBF2',
+              creamSoft: '#FAF3E3',
+              wood: '#854D27',
+              woodDark: '#542E14',
+              woodLight: '#B87242',
+              leaf: '#3D8E2D',
+              leafDark: '#265C1C',
+              leafSoft: '#DCF3CE',
+              sun: '#FFAC1C',
+              carrot: '#EA580C',
+              copper: '#B87333',
+              gold: '#F59E0B'
+            }
+          },
+          boxShadow: {
+            'farm-btn': '0 4px 0 #542E14',
+            'farm-btn-sm': '0 2px 0 #542E14',
+            'leaf-btn': '0 4px 0 #265C1C',
+            'card-board': '0 8px 0 #542E14, 0 16px 24px rgba(45, 20, 5, 0.28)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * {
+      font-family: 'Nunito', sans-serif !important;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Hiệu ứng mây trôi bầu trời */
+    @keyframes cloudFloat {
+      0% { transform: translateX(-180px); }
+      100% { transform: translateX(110vw); }
+    }
+    .anim-cloud-1 { animation: cloudFloat 45s linear infinite; }
+    .anim-cloud-2 { animation: cloudFloat 35s linear infinite; animation-delay: -12s; }
+    .anim-cloud-3 { animation: cloudFloat 58s linear infinite; animation-delay: -25s; }
+
+    /* Hiệu ứng nút bấm vật lý nảy 3D */
+    .farm-press {
+      transition: transform 0.08s ease, box-shadow 0.08s ease;
+    }
+    .farm-press:active {
+      transform: translateY(3px) !important;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.3) !important;
+    }
+
+    /* Định kiểu ô nhập liệu rustic */
+    .farm-input {
+      background-color: #FFFFFF;
+      border: 2px solid #D8C3A5;
+      color: #542E14;
+      transition: all 0.2s ease;
+    }
+    .farm-input:focus {
+      outline: none;
+      border-color: #3D8E2D;
+      box-shadow: 0 0 0 3px rgba(61, 142, 45, 0.2);
+    }
+
+    /* Hiệu ứng cối xay gió quay */
+    @keyframes windmillSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .anim-spin-windmill {
+      animation: windmillSpin 14s linear infinite;
+      transform-origin: center center;
+    }
+
+    /* Thanh cuộn mềm */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #F1E2CE; border-radius: 6px; }
+    ::-webkit-scrollbar-thumb { background: #AA744A; border-radius: 6px; }
+  </style>
+</head>
+
+<body class="min-h-screen bg-gradient-to-b from-[#75BFF0] via-[#AEE0FC] to-[#80CF5C] text-[#42250F] flex flex-col justify-between relative overflow-x-hidden">
+
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+    <!-- Mặt trời tỏa sáng -->
+    <div class="absolute top-6 left-10 w-28 h-28 rounded-full bg-yellow-300/80 blur-xl"></div>
+    <div class="absolute top-8 left-12 text-6xl select-none">☀️</div>
+
+    <!-- Mây bồng bềnh -->
+    <div class="anim-cloud-1 absolute top-6 text-white/90 text-6xl">☁️</div>
+    <div class="anim-cloud-2 absolute top-20 text-white/75 text-4xl">☁️</div>
+    <div class="anim-cloud-3 absolute top-12 text-white/80 text-5xl">☁️</div>
+
+    <!-- Cối xay gió và hàng cây phía xa xa -->
+    <div class="absolute bottom-40 right-10 text-5xl opacity-80 hidden md:block">🏡</div>
+    <div class="absolute bottom-44 right-24 text-4xl opacity-70 hidden md:block">🌳</div>
+    <div class="absolute bottom-36 left-12 text-4xl opacity-75 hidden md:block">🌻🌻</div>
+
+    <!-- Các tầng đồi cỏ thoai thoải -->
+    <div class="absolute -bottom-16 -left-20 -right-20 h-64 bg-[#5AA43E] rounded-[50%_50%_0_0] opacity-40"></div>
+    <div class="absolute -bottom-24 -left-12 -right-12 h-60 bg-[#429525] rounded-[50%_50%_0_0]"></div>
+  </div>
+
+  <header class="relative z-20 w-full max-w-5xl mx-auto px-4 pt-4 pb-2 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="w-12 h-12 bg-amber-100 border-[3px] border-cozy-woodDark rounded-2xl flex items-center justify-center text-2xl shadow-sm">
+        🌾
+      </div>
+      <div>
+        <h1 class="text-xl md:text-2xl font-black text-cozy-woodDark tracking-tight flex items-center gap-1.5">
+          <span>NÔNG TRẠI 2.5D</span>
+          <span class="text-[10px] bg-cozy-sun text-cozy-woodDark px-2 py-0.5 rounded-full font-black border border-cozy-woodDark">TRANG TRẠI</span>
+        </h1>
+        <p class="text-xs font-bold text-emerald-950 flex items-center gap-1">
+          <span>🚜</span> Đăng nhập nông dân
+        </p>
+      </div>
+    </div>
+
+    <!-- Bật/Tắt âm thanh & Lối tắt vào thẳng trang chủ -->
+    <div class="flex items-center space-x-2">
+      <button onclick="toggleAudio()" id="btnAudioToggle"
+              class="farm-press bg-white hover:bg-amber-50 text-cozy-woodDark border-2 border-cozy-woodDark px-3 py-1.5 rounded-xl shadow-farm-btn-sm text-xs font-black flex items-center space-x-1.5">
+        <span id="audioIcon">🔊</span>
+        <span id="audioText" class="hidden sm:inline">Âm Thanh</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="relative z-10 flex-grow flex items-center justify-center px-4 py-4 w-full max-w-5xl mx-auto">
+    
+    <div class="w-full max-w-md my-auto">
+      <!-- Bảng gỗ nâu đậm tạo cảm giác khung biển hiệu nông trại -->
+      <div class="bg-gradient-to-b from-[#9C5F35] to-[#713B1A] p-3 sm:p-4 rounded-[2rem] border-[4px] border-cozy-woodDark shadow-card-board relative">
+        
+        <!-- Đinh ốc gỗ trang trí 4 góc -->
+        <div class="absolute top-2 left-2 w-3 h-3 rounded-full bg-[#D8C2A2] border border-cozy-woodDark"></div>
+        <div class="absolute top-2 right-2 w-3 h-3 rounded-full bg-[#D8C2A2] border border-cozy-woodDark"></div>
+        <div class="absolute bottom-2 left-2 w-3 h-3 rounded-full bg-[#D8C2A2] border border-cozy-woodDark"></div>
+        <div class="absolute bottom-2 right-2 w-3 h-3 rounded-full bg-[#D8C2A2] border border-cozy-woodDark"></div>
+
+        <!-- Thanh Tab Chuyển Đổi Đăng Nhập / Đăng Ký -->
+        <div class="grid grid-cols-2 gap-2 mb-3 bg-[#4D2810]/50 p-1.5 rounded-2xl border border-cozy-woodDark/40">
+          <button id="tabBtnLogin" onclick="switchAuthTab('login')" 
+                  class="farm-press py-2.5 px-3 rounded-xl text-xs md:text-sm font-black transition flex items-center justify-center space-x-1.5 bg-cozy-sun text-cozy-woodDark shadow-sm">
+            <span>🔑</span>
+            <span>Đăng Nhập</span>
+          </button>
+
+          <button id="tabBtnRegister" onclick="switchAuthTab('register')" 
+                  class="farm-press py-2.5 px-3 rounded-xl text-xs md:text-sm font-black transition flex items-center justify-center space-x-1.5 bg-transparent text-amber-100 hover:text-white">
+            <span>🌱</span>
+            <span>Đăng Ký Mới</span>
+          </button>
+        </div>
+
+        <!-- Khung giấy sáp bên trong chứa form -->
+        <div class="bg-cozy-cream rounded-2xl border-2 border-[#D8C2A2] p-4 sm:p-5 shadow-inner">
+          
+          <form id="formLogin" onsubmit="handleLoginSubmit(event)" class="space-y-3.5">
+            <div class="text-center pb-0.5">
+              <div class="w-12 h-12 mx-auto bg-amber-100 border-2 border-cozy-woodDark rounded-2xl flex items-center justify-center text-2xl shadow-inner mb-1.5">
+                🚜
+              </div>
+              <h2 class="text-lg md:text-xl font-black text-cozy-woodDark">Chào Bác Nông Dân!</h2>
+              <p class="text-xs font-bold text-[#83583C]">Nhập thông tin để mở cổng vào nông trại</p>
+            </div>
+
+            <!-- Trường tài khoản -->
+            <div>
+              <label class="block text-xs font-black text-cozy-woodDark mb-1">Tên Chủ Vườn hoặc Email:</label>
+              <div class="relative">
+                <input type="text" id="loginUser" required placeholder="Nhập tên chủ vườn hoặc email"
+                       class="farm-input w-full pl-9 pr-3 py-2 rounded-xl text-sm font-bold placeholder-stone-400" />
+                <span class="absolute left-3 top-2.5 text-sm">👤</span>
+              </div>
+            </div>
+
+            <!-- Trường mật khẩu -->
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="text-xs font-black text-cozy-woodDark">Mật khẩu bí mật:</label>
+              </div>
+              <div class="relative">
+                <input type="password" id="loginPass" required placeholder="••••••••"
+                       class="farm-input w-full pl-9 pr-10 py-2 rounded-xl text-sm font-bold" />
+                <span class="absolute left-3 top-2.5 text-sm">🔒</span>
+                <button type="button" onclick="togglePassVisibility('loginPass', this)" 
+                        class="absolute right-3 top-2.5 text-stone-500 font-bold text-xs hover:text-stone-700">
+                  👁️
+                </button>
+              </div>
+            </div>
+
+            <!-- Ghi nhớ phiên -->
+            <div class="flex items-center justify-between text-xs font-bold text-cozy-woodDark pt-0.5">
+              <label class="flex items-center space-x-1.5 cursor-pointer">
+                <input type="checkbox" id="rememberMe" checked class="w-4 h-4 text-emerald-600 rounded border-stone-300 focus:ring-emerald-500">
+                <span>Ghi nhớ đăng nhập</span>
+              </label>
+            </div>
+
+            <!-- Nút gửi form đăng nhập -->
+            <button type="submit" id="btnSubmitLogin"
+                    class="farm-press w-full mt-2 bg-cozy-leaf hover:bg-[#327E23] text-white font-black py-2.5 rounded-xl border-2 border-cozy-leafDark shadow-leaf-btn text-sm sm:text-base flex items-center justify-center space-x-2">
+              <span>🌾</span>
+              <span>Đăng Nhập - Mở Cổng Nông Trại</span>
+            </button>
+          </form>
+
+          <form id="formRegister" onsubmit="handleRegisterSubmit(event)" class="space-y-3 hidden">
+            <div class="text-center pb-0.5">
+              <div class="w-12 h-12 mx-auto bg-orange-100 border-2 border-cozy-woodDark rounded-2xl flex items-center justify-center text-2xl shadow-inner mb-1.5">
+                🌱
+              </div>
+              <h2 class="text-lg md:text-xl font-black text-cozy-woodDark">Cấp Đất - Nhận Nông Trại</h2>
+              <p class="text-xs font-bold text-[#83583C]">Khởi tạo chủ vườn mới để bắt đầu mùa vụ bội thu</p>
+            </div>
+
+            <!-- Tên tài khoản kiêm tên chủ vườn -->
+            <div>
+              <label class="block text-xs font-black text-cozy-woodDark mb-1">Tên Tài Khoản:</label>
+              <div class="relative">
+                <input type="text" id="regFarmerName" required placeholder="Ví dụ: Bác Ba Nông Dân" maxlength="25"
+                       class="farm-input w-full pl-9 pr-3 py-1.5 rounded-xl text-sm font-bold" />
+                <span class="absolute left-3 top-2 text-sm">🧑‍🌾</span>
+              </div>
+            </div>
+
+            <!-- Email dùng để đăng nhập thay thế -->
+            <div>
+              <label class="block text-xs font-black text-cozy-woodDark mb-1">Địa Chỉ Email:</label>
+              <div class="relative">
+                <input type="email" id="regEmail" required placeholder="bacba@gmail.com"
+                       class="farm-input w-full pl-9 pr-3 py-1.5 rounded-xl text-sm font-bold" />
+                <span class="absolute left-3 top-2 text-sm">✉️</span>
+              </div>
+            </div>
+
+            <!-- Mật khẩu và xác nhận -->
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[11px] font-black text-cozy-woodDark mb-1">Mật khẩu:</label>
+                <input type="password" id="regPass" required placeholder="Tối thiểu 3 ký tự" minlength="3"
+                       class="farm-input w-full px-2.5 py-1.5 rounded-xl text-xs font-bold" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-black text-cozy-woodDark mb-1">Nhập lại:</label>
+                <input type="password" id="regPassConfirm" required placeholder="Khớp mật khẩu" minlength="3"
+                       class="farm-input w-full px-2.5 py-1.5 rounded-xl text-xs font-bold" />
+              </div>
+            </div>
+
+            <!-- Chọn bạn thú cưng giữ cổng nông trại -->
+            <div>
+              <label class="block text-xs font-black text-cozy-woodDark mb-1">Chọn thú cưng đồng hành cùng bạn:</label>
+              <div class="grid grid-cols-4 gap-1.5 text-center" id="petSelector">
+                <button type="button" onclick="selectPet('🐮', 'Bò Sữa', this)" 
+                        class="pet-btn p-1.5 rounded-xl border-2 border-cozy-leaf bg-emerald-50 text-center transition">
+                  <span class="text-2xl block">🐮</span>
+                  <span class="text-[10px] font-black text-cozy-woodDark block">Bò Sữa</span>
+                </button>
+                <button type="button" onclick="selectPet('🐶', 'Cún Vàng', this)" 
+                        class="pet-btn p-1.5 rounded-xl border-2 border-[#D8C2A2] bg-white text-center transition">
+                  <span class="text-2xl block">🐶</span>
+                  <span class="text-[10px] font-black text-cozy-woodDark block">Cún Vàng</span>
+                </button>
+                <button type="button" onclick="selectPet('🐱', 'Mèo Mướp', this)" 
+                        class="pet-btn p-1.5 rounded-xl border-2 border-[#D8C2A2] bg-white text-center transition">
+                  <span class="text-2xl block">🐱</span>
+                  <span class="text-[10px] font-black text-cozy-woodDark block">Mèo Mướp</span>
+                </button>
+                <button type="button" onclick="selectPet('🦆', 'Vịt Con', this)" 
+                        class="pet-btn p-1.5 rounded-xl border-2 border-[#D8C2A2] bg-white text-center transition">
+                  <span class="text-2xl block">🦆</span>
+                  <span class="text-[10px] font-black text-cozy-woodDark block">Vịt Con</span>
+                </button>
+              </div>
+              <input type="hidden" id="selectedPetIcon" value="🐮">
+              <input type="hidden" id="selectedPetName" value="Bò Sữa">
+            </div>
+
+            <!-- Nút gửi đăng ký -->
+            <button type="submit" id="btnSubmitRegister"
+                    class="farm-press w-full mt-2 bg-cozy-carrot hover:bg-orange-600 text-white font-black py-2.5 rounded-xl border-2 border-[#9F3D06] shadow-farm-btn text-sm sm:text-base flex items-center justify-center space-x-2">
+              <span>🌾</span>
+              <span>Hoàn Tất Đăng Ký - Nhận Nông Trại</span>
+            </button>
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="relative z-20 w-full max-w-5xl mx-auto px-4 py-3 text-center text-xs font-extrabold text-cozy-woodDark/80">
+    <p>🌾 Trò chơi Quản Lý Nông Trại 2.5D Isometric • Chúc quý chủ vườn mùa vụ bội thu và trù phú</p>
+  </footer>
+
+  <div id="farmToast" class="fixed top-5 right-5 z-50 transform translate-x-[160%] transition-transform duration-300 ease-out max-w-sm pointer-events-none">
+    <div class="bg-cozy-cream border-4 border-cozy-woodDark rounded-2xl p-3 shadow-2xl flex items-center space-x-3 pointer-events-auto">
+      <div id="toastIcon" class="text-3xl">🌾</div>
+      <div>
+        <h4 id="toastTitle" class="text-xs font-black text-cozy-woodDark uppercase">Nông Trại</h4>
+        <p id="toastMsg" class="text-xs font-bold text-[#7A4926]">Thông báo hệ thống</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Khởi tạo danh sách tài khoản từ LocalStorage để lưu trữ bền vững
+    const LOCAL_STORAGE_KEY = 'cozy_farm_registered_users';
+    function getStoredUsers() {
+      try {
+        const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveStoredUsers(users) {
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(users));
+      } catch (e) {
+        console.warn("Không thể lưu LocalStorage:", e);
+      }
+    }
+
+    let registeredUsers = getStoredUsers();
+
+    let isSoundActive = true;
+    let synthAudio = null;
+
+    function setupToneAudio() {
+      if (!synthAudio && typeof Tone !== 'undefined') {
+        try {
+          synthAudio = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: 'triangle' },
+            envelope: { attack: 0.01, decay: 0.1, sustain: 0.05, release: 0.25 }
+          }).toDestination();
+          synthAudio.volume.value = -8;
+        } catch (e) {}
+      }
+    }
+
+    window.triggerGameSound = function(type) {
+      if (!isSoundActive) return;
+      try {
+        setupToneAudio();
+        if (typeof Tone !== 'undefined' && Tone.context && Tone.context.state !== 'running') {
+          Tone.start();
+        }
+        if (synthAudio) {
+          if (type === 'click') synthAudio.triggerAttackRelease(["A4"], "32n");
+          if (type === 'success') synthAudio.triggerAttackRelease(["C5", "E5", "G5", "C6"], "10n");
+          if (type === 'error') synthAudio.triggerAttackRelease(["F4", "C4"], "12n");
+        }
+      } catch (err) {}
+    };
+
+    window.toggleAudio = function() {
+      isSoundActive = !isSoundActive;
+      const icon = document.getElementById('audioIcon');
+      const text = document.getElementById('audioText');
+      if (isSoundActive) {
+        if (icon) icon.textContent = '🔊';
+        if (text) text.textContent = 'Âm Thanh';
+        window.showToast('🔊', 'Âm Thanh', 'Đã bật hiệu ứng âm thanh!');
+        window.triggerGameSound('click');
+      } else {
+        if (icon) icon.textContent = '🔇';
+        if (text) text.textContent = 'Tắt Âm';
+        window.showToast('🔇', 'Âm Thanh', 'Đã tắt hiệu ứng âm thanh.');
+      }
+    };
+
+    let toastTimeout;
+    window.showToast = function(icon, title, message) {
+      const toast = document.getElementById('farmToast');
+      if (!toast) return;
+      const toastIcon = document.getElementById('toastIcon');
+      const toastTitle = document.getElementById('toastTitle');
+      const toastMsg = document.getElementById('toastMsg');
+
+      if (toastIcon) toastIcon.textContent = icon;
+      if (toastTitle) toastTitle.textContent = title;
+      if (toastMsg) toastMsg.textContent = message;
+
+      toast.classList.remove('translate-x-[160%]');
+      toast.classList.add('translate-x-0');
+
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('translate-x-0');
+        toast.classList.add('translate-x-[160%]');
+      }, 3200);
+    };
+
+    // Định nghĩa ngay lập tức switchAuthTab để onclick luôn sẵn sàng
+    window.switchAuthTab = function(tabName) {
+      window.triggerGameSound('click');
+      const btnLogin = document.getElementById('tabBtnLogin');
+      const btnReg = document.getElementById('tabBtnRegister');
+      const formLogin = document.getElementById('formLogin');
+      const formReg = document.getElementById('formRegister');
+
+      if (tabName === 'login') {
+        if (btnLogin) btnLogin.className = "farm-press py-2.5 px-3 rounded-xl text-xs md:text-sm font-black transition flex items-center justify-center space-x-1.5 bg-cozy-sun text-cozy-woodDark shadow-sm";
+        if (btnReg) btnReg.className = "farm-press py-2.5 px-3 rounded-xl text-xs md:text-sm font-black transition flex items-center justify-center space-x-1.5 bg-transparent text-amber-100 hover:text-white";
+        if (formLogin) formLogin.classList.remove('hidden');
+        if (formReg) formReg.classList.add('hidden');
+      } else {
+        if (btnReg) btnReg.className = "farm-press py-2.5 px-3 rounded-xl text-xs md:text-sm font-black transition flex items-center justify-center space-x-1.5 bg-cozy-sun text-cozy-woodDark shadow-sm";
+        if (btnLogin) btnLogin.className = "farm-press py-2.5 px-3 rounded-xl text-xs md:text-sm font-black transition flex items-center justify-center space-x-1.5 bg-transparent text-amber-100 hover:text-white";
+        if (formReg) formReg.classList.remove('hidden');
+        if (formLogin) formLogin.classList.add('hidden');
+      }
+    };
+
+    window.selectPet = function(icon, name, element) {
+      window.triggerGameSound('click');
+      document.querySelectorAll('.pet-btn').forEach(btn => {
+        btn.className = 'pet-btn p-1.5 rounded-xl border-2 border-[#D8C2A2] bg-white text-center transition';
+      });
+      if (element) {
+        element.className = 'pet-btn p-1.5 rounded-xl border-2 border-cozy-leaf bg-emerald-50 text-center transition';
+      }
+      const iconInput = document.getElementById('selectedPetIcon');
+      const nameInput = document.getElementById('selectedPetName');
+      if (iconInput) iconInput.value = icon;
+      if (nameInput) nameInput.value = name;
+    };
+
+    window.togglePassVisibility = function(inputId, btnElement) {
+      window.triggerGameSound('click');
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        if (btnElement) btnElement.textContent = '🔒';
+      } else {
+        input.type = 'password';
+        if (btnElement) btnElement.textContent = '👁️';
+      }
+    };
+
+    function navigateDirectlyToHome(userObj) {
+      window.triggerGameSound('success');
+      const targetUrl = `home.html?farmer=${encodeURIComponent(userObj.name)}&pet=${encodeURIComponent(userObj.petIcon)}&user=${encodeURIComponent(userObj.username)}`;
+      window.location.href = targetUrl;
+    }
+
+    window.handleLoginSubmit = function(event) {
+      event.preventDefault();
+      const userVal = (document.getElementById('loginUser')?.value || '').trim().toLowerCase();
+      const passVal = document.getElementById('loginPass')?.value || '';
+
+      registeredUsers = getStoredUsers();
+
+      // Cho phép đăng nhập bằng cả Tên Chủ Vườn (Tên tài khoản) HOẶC Email
+      const foundUser = registeredUsers.find(u => 
+        (
+          (u.username && u.username.toLowerCase() === userVal) ||
+          (u.name && u.name.toLowerCase() === userVal) ||
+          (u.email && u.email.toLowerCase() === userVal)
+        ) && u.password === passVal
+      );
+
+      if (foundUser) {
+        navigateDirectlyToHome(foundUser);
+      } else {
+        window.triggerGameSound('error');
+        window.showToast('❌', 'Đăng Nhập Thất Bại', 'Tên chủ vườn/email hoặc mật khẩu không chính xác!');
+      }
+    };
+
+    window.handleRegisterSubmit = function(event) {
+      event.preventDefault();
+      const farmerName = (document.getElementById('regFarmerName')?.value || '').trim();
+      const email = (document.getElementById('regEmail')?.value || '').trim();
+      const pass = document.getElementById('regPass')?.value || '';
+      const passConfirm = document.getElementById('regPassConfirm')?.value || '';
+      const petIcon = document.getElementById('selectedPetIcon')?.value || '🐮';
+      const petName = document.getElementById('selectedPetName')?.value || 'Bò Sữa';
+
+      if (pass !== passConfirm) {
+        window.triggerGameSound('error');
+        window.showToast('⚠️', 'Mật Khẩu Không Khớp', 'Vui lòng kiểm tra lại mật khẩu xác nhận!');
+        return;
+      }
+
+      registeredUsers = getStoredUsers();
+
+      // Kiểm tra trùng lặp tên tài khoản kiêm tên chủ vườn
+      const isNameExisted = registeredUsers.some(u => 
+        (u.username && u.username.toLowerCase() === farmerName.toLowerCase()) ||
+        (u.name && u.name.toLowerCase() === farmerName.toLowerCase())
+      );
+      if (isNameExisted) {
+        window.triggerGameSound('error');
+        window.showToast('⚠️', 'Tên Chủ Vườn Đã Tồn Tại', 'Tên chủ vườn này đã có người sử dụng. Hãy chọn tên khác!');
+        return;
+      }
+
+      // Kiểm tra trùng lặp Email
+      const isEmailExisted = registeredUsers.some(u => 
+        u.email && u.email.toLowerCase() === email.toLowerCase()
+      );
+      if (isEmailExisted) {
+        window.triggerGameSound('error');
+        window.showToast('⚠️', 'Email Đã Đăng Ký', 'Địa chỉ email này đã được sử dụng! Vui lòng dùng email khác.');
+        return;
+      }
+
+      // Tạo hồ sơ nông dân: username và name thống nhất là tên chủ vườn
+      const newFarmer = {
+        username: farmerName,
+        name: farmerName,
+        email: email,
+        password: pass,
+        petIcon: petIcon,
+        petName: petName,
+        createdAt: new Date().toISOString()
+      };
+
+      // Lưu trữ ngay lập tức vào LocalStorage
+      registeredUsers.push(newFarmer);
+      saveStoredUsers(registeredUsers);
+
+      // Lưu lên đám mây ở tiến trình nền nếu có sẵn
+      if (window._saveFarmerToCloud) {
+        window._saveFarmerToCloud(newFarmer);
+      }
+
+      // Điều hướng thẳng vào nông trại
+      navigateDirectlyToHome(newFarmer);
+    };
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    (async () => {
+      try {
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'farm-game-app';
+        if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+          const firebaseConfig = JSON.parse(__firebase_config);
+          const app = initializeApp(firebaseConfig);
+          const auth = getAuth(app);
+          const db = getFirestore(app);
+
+          if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            await signInWithCustomToken(auth, __initial_auth_token);
+          } else {
+            await signInAnonymously(auth);
+          }
+
+          // Đồng bộ danh sách từ Firestore vào LocalStorage
+          const usersCol = collection(db, 'artifacts', appId, 'public', 'data', 'farmers');
+          const snapshot = await getDocs(usersCol);
+          let updated = false;
+          snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            if (data && data.username) {
+              const exists = registeredUsers.some(u => u.username.toLowerCase() === data.username.toLowerCase());
+              if (!exists) {
+                registeredUsers.push(data);
+                updated = true;
+              }
+            }
+          });
+          if (updated) saveStoredUsers(registeredUsers);
+
+          // Hàm hỗ trợ lưu người dùng mới lên mây
+          window._saveFarmerToCloud = async (farmer) => {
+            try {
+              await addDoc(usersCol, farmer);
+            } catch (err) {
+              console.warn("Lỗi lưu mây:", err);
+            }
+          };
+        }
+      } catch (err) {
+        console.warn("Hoạt động ở chế độ lưu trữ LocalStorage:", err);
+      }
+    })();
+  </script>
+</body>
+</html>

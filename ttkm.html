@@ -3,356 +3,165 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin - Nông Trại 2.5D</title>
+  <title>Cổng Đổi Thưởng - Nông Trại 2.5D</title>
+  
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
   <style>
-    * { font-family: 'Nunito', sans-serif !important; }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #1e293b; border-radius: 6px; }
-    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 6px; }
+    * { font-family: 'Nunito', sans-serif !important; user-select: none; }
+    .farm-input {
+      background-color: #FFFFFF; border: 2px solid #D8C3A5; color: #542E14; transition: all 0.2s ease;
+    }
+    .farm-input:focus {
+      outline: none; border-color: #3D8E2D; box-shadow: 0 0 0 3px rgba(61, 142, 45, 0.2);
+    }
+    .farm-press:active { transform: translateY(3px) !important; box-shadow: 0 1px 0 rgba(0,0,0,0.3) !important; }
+    
+    @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+    .floating { animation: float 3s ease-in-out infinite; }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-200 min-h-screen">
+<body class="min-h-screen bg-gradient-to-b from-[#75BFF0] via-[#AEE0FC] to-[#80CF5C] text-[#42250F] flex items-center justify-center p-4 relative overflow-hidden">
 
-  <!-- LOGIN KHU VỰC ADMIN -->
-  <div id="adminLogin" class="fixed inset-0 z-50 bg-slate-900 flex items-center justify-center">
-    <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700 shadow-2xl w-full max-w-sm text-center">
-      <div class="text-4xl mb-4">🛡️</div>
-      <h2 class="text-xl font-black text-white mb-4">CỔNG QUẢN TRỊ ADMIN</h2>
-      <input type="password" id="adminPass" placeholder="Mật khẩu (Gợi ý: admin)" class="w-full bg-slate-900 border border-slate-600 text-white px-4 py-2 rounded-xl mb-4 focus:outline-none focus:border-sky-500 text-center font-bold">
-      <button onclick="loginAdmin()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-black py-2 rounded-xl transition">Truy Cập</button>
-    </div>
+  <!-- Trang trí nền -->
+  <div class="fixed inset-0 pointer-events-none z-0">
+    <div class="absolute top-10 left-10 text-6xl floating">☁️</div>
+    <div class="absolute top-20 right-20 text-4xl floating" style="animation-delay: 1s;">☁️</div>
+    <div class="absolute -bottom-10 -left-10 text-7xl opacity-80">🌻</div>
+    <div class="absolute -bottom-10 -right-10 text-7xl opacity-80">🌳</div>
   </div>
 
-  <div id="adminDashboard" class="hidden flex h-screen overflow-hidden">
-    <!-- SIDEBAR -->
-    <div class="w-64 bg-slate-800 border-r border-slate-700 flex flex-col">
-      <div class="p-5 border-b border-slate-700 text-center">
-        <h1 class="text-xl font-black text-white tracking-wider">FARM<span class="text-sky-500">ADMIN</span></h1>
-      </div>
-      <nav class="flex-1 p-4 space-y-2">
-        <button onclick="switchTab('users')" id="btnTabUsers" class="w-full text-left px-4 py-2 rounded-lg font-bold bg-sky-600 text-white transition">🧑‍🌾 Người Chơi</button>
-        <button onclick="switchTab('codes')" id="btnTabCodes" class="w-full text-left px-4 py-2 rounded-lg font-bold text-slate-400 hover:bg-slate-700 hover:text-white transition">🎟️ Tạo Mã Code</button>
-        <button onclick="switchTab('vouchers')" id="btnTabVouchers" class="w-full text-left px-4 py-2 rounded-lg font-bold text-slate-400 hover:bg-slate-700 hover:text-white transition">🎁 Quản Lý Rút Tiền</button>
-      </nav>
-      <div class="p-4 border-t border-slate-700">
-        <button onclick="location.reload()" class="w-full text-left px-4 py-2 text-sm text-red-400 hover:text-red-300 font-bold">Thoát Admin</button>
-      </div>
-    </div>
-
-    <!-- MAIN CONTENT -->
-    <div class="flex-1 overflow-y-auto p-6 bg-slate-900">
+  <div class="relative z-10 w-full max-w-lg">
+    <!-- Khung Bảng Gỗ -->
+    <div class="bg-gradient-to-b from-[#9C5F35] to-[#713B1A] p-3 sm:p-4 rounded-[2rem] border-[4px] border-[#542E14] shadow-[0_8px_0_#542E14,0_16px_24px_rgba(45,20,5,0.3)] relative">
+      <!-- Đinh ốc -->
+      <div class="absolute top-2 left-2 w-3 h-3 rounded-full bg-[#D8C2A2] border border-[#542E14]"></div>
+      <div class="absolute top-2 right-2 w-3 h-3 rounded-full bg-[#D8C2A2] border border-[#542E14]"></div>
       
-      <!-- TAB USERS -->
-      <div id="tabUsers" class="space-y-4">
-        <h2 class="text-2xl font-black text-white mb-4">Danh sách chủ vườn</h2>
-        <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
-          <table class="w-full text-left text-sm">
-            <thead class="bg-slate-700 text-slate-300">
-              <tr>
-                <th class="px-4 py-3 font-bold">Tài khoản</th>
-                <th class="px-4 py-3 font-bold">Cấp độ</th>
-                <th class="px-4 py-3 font-bold">Đồng Vàng 🪙</th>
-                <th class="px-4 py-3 font-bold">Đồng Bạc 🟤</th>
-                <th class="px-4 py-3 font-bold text-right">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody id="userTableBody" class="divide-y divide-slate-700/50">
-              <!-- Render by JS -->
-            </tbody>
-          </table>
+      <div class="bg-[#FFFBF2] rounded-2xl border-2 border-[#D8C2A2] p-5 shadow-inner">
+        <div class="text-center pb-4 border-b-2 border-[#E6D4BE] mb-4">
+          <div class="w-16 h-16 mx-auto bg-amber-100 border-2 border-[#542E14] rounded-2xl flex items-center justify-center text-4xl shadow-inner mb-2 floating">
+            🎁
+          </div>
+          <h1 class="text-2xl font-black text-[#542E14]">TRUNG TÂM ĐỔI QUÀ</h1>
+          <p class="text-xs font-bold text-[#83583C]">Nhập mã Voucher nhận từ game để rút tiền</p>
         </div>
-      </div>
 
-      <!-- TAB CODES (Tạo code vật phẩm / Đồng bạc) -->
-      <div id="tabCodes" class="hidden space-y-6">
-        <h2 class="text-2xl font-black text-white mb-2">Trung Tâm Phát Hành Code</h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 flex flex-col justify-between">
+        <form id="formRedeem" onsubmit="submitRedeemRequest(event)" class="space-y-4">
+          
+          <!-- Mã Voucher -->
+          <div>
+            <label class="block text-xs font-black text-[#542E14] mb-1">Mã Voucher của bạn (FARM-...):</label>
+            <input type="text" id="reqCode" required placeholder="Nhập mã Voucher..."
+                   class="farm-input w-full px-4 py-2 rounded-xl text-sm font-black uppercase text-center tracking-wider" />
+            
+            <!-- Hộp hiển thị mệnh giá voucher tự động -->
+            <div id="voucherInfoBox" class="hidden mt-3 p-3 bg-emerald-50 border-2 border-emerald-200 rounded-xl flex items-center justify-between transition-all duration-300 transform scale-95 opacity-0">
+              <div class="flex flex-col">
+                <span class="text-[10px] uppercase font-black text-emerald-600 mb-0.5">Tên TK Liên Kết</span>
+                <span id="infoOwner" class="text-sm font-black text-emerald-900 flex items-center gap-1">👤 ...</span>
+              </div>
+              <div class="flex flex-col items-end">
+                <span class="text-[10px] uppercase font-black text-amber-600 mb-0.5">Mệnh Giá Quà</span>
+                <span class="text-base font-black text-amber-600 flex items-center gap-1">💰 <span id="infoValue">0</span>đ</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Tên Ngân Hàng -->
             <div>
-              <div class="text-3xl mb-2">🟤</div>
-              <h3 class="font-bold text-white mb-1">Code Đồng Bạc</h3>
-              <p class="text-[10px] text-slate-400 mb-3">Tùy chọn số lượng bạc.</p>
+              <label class="block text-xs font-black text-[#542E14] mb-1">Tên Ngân Hàng:</label>
+              <input type="text" id="reqBank" required placeholder="VD: MB Bank, Vietcombank..."
+                     class="farm-input w-full px-3 py-2 rounded-xl text-sm font-bold" />
             </div>
-            <div class="flex gap-2">
-              <input type="number" id="valCopper" value="50" min="1" class="w-full bg-slate-900 border border-slate-600 text-white px-2 py-1.5 rounded-lg text-sm text-center">
-              <button onclick="generateCustomCode('COPPER', 'valCopper')" class="shrink-0 bg-amber-700 hover:bg-amber-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">Tạo</button>
-            </div>
-          </div>
-
-          <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 flex flex-col justify-between">
+            <!-- Số Điện Thoại -->
             <div>
-              <div class="text-3xl mb-2">🪙</div>
-              <h3 class="font-bold text-white mb-1">Code Đồng Vàng</h3>
-              <p class="text-[10px] text-slate-400 mb-3">Tặng vốn cho người chơi.</p>
-            </div>
-            <div class="flex gap-2">
-              <input type="number" id="valGold" value="1000" min="1" class="w-full bg-slate-900 border border-slate-600 text-white px-2 py-1.5 rounded-lg text-sm text-center">
-              <button onclick="generateCustomCode('GOLD', 'valGold')" class="shrink-0 bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg">Tạo</button>
+              <label class="block text-xs font-black text-[#542E14] mb-1">Số Điện Thoại:</label>
+              <input type="tel" id="reqPhone" required placeholder="Số điện thoại liên hệ"
+                     class="farm-input w-full px-3 py-2 rounded-xl text-sm font-bold" />
             </div>
           </div>
 
-          <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 flex flex-col justify-between">
-            <div>
-              <div class="text-3xl mb-2">🧺</div>
-              <h3 class="font-bold text-white mb-1">Auto Thu Hoạch</h3>
-              <p class="text-[10px] text-slate-400 mb-3">Nhập số giờ tự động.</p>
-            </div>
-            <div class="flex gap-2">
-              <input type="number" id="valHarvest" value="12" min="1" class="w-full bg-slate-900 border border-slate-600 text-white px-2 py-1.5 rounded-lg text-sm text-center">
-              <button onclick="generateCustomCode('AUTO_HARVEST', 'valHarvest')" class="shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg">Tạo</button>
-            </div>
+          <!-- Số Tài Khoản -->
+          <div>
+            <label class="block text-xs font-black text-[#542E14] mb-1">Số Tài Khoản (STK):</label>
+            <input type="text" id="reqStk" required placeholder="Nhập chính xác số tài khoản..."
+                   class="farm-input w-full px-4 py-2 rounded-xl text-sm font-bold" />
           </div>
 
-          <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 flex flex-col justify-between">
-            <div>
-              <div class="text-3xl mb-2">🌱</div>
-              <h3 class="font-bold text-white mb-1">Auto Gieo Hạt</h3>
-              <p class="text-[10px] text-slate-400 mb-3">Nhập số giờ tự động.</p>
-            </div>
-            <div class="flex gap-2">
-              <input type="number" id="valPlant" value="12" min="1" class="w-full bg-slate-900 border border-slate-600 text-white px-2 py-1.5 rounded-lg text-sm text-center">
-              <button onclick="generateCustomCode('AUTO_PLANT', 'valPlant')" class="shrink-0 bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg">Tạo</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
-          <div class="px-4 py-3 bg-slate-700 font-bold border-b border-slate-600">Danh sách mã đã tạo</div>
-          <div class="max-h-64 overflow-y-auto p-4">
-            <table class="w-full text-left text-sm">
-              <thead class="text-slate-400 text-xs uppercase">
-                <tr><th>Mã Code</th><th>Loại</th><th>Trị giá</th><th>Tình trạng</th></tr>
-              </thead>
-              <tbody id="codesTableBody" class="divide-y divide-slate-700/50">
-                <!-- Render by JS -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- TAB VOUCHERS (Đối soát mã do người chơi đổi từ Đồng Vàng) -->
-      <div id="tabVouchers" class="hidden space-y-6">
-        <h2 class="text-2xl font-black text-white mb-2">Quản Lý Giao Dịch & Đổi Thưởng</h2>
-        
-        <!-- YÊU CẦU CHỜ DUYỆT TỪ REDEEM.HTML -->
-        <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden mb-4">
-          <div class="px-4 py-3 bg-amber-600 font-bold border-b border-slate-600 flex justify-between items-center">
-            <span>⏳ Yêu Cầu Rút Tiền Chờ Duyệt</span>
-            <span class="text-xs bg-amber-900 px-2 py-1 rounded" id="pendingCount">0</span>
-          </div>
-          <div class="max-h-64 overflow-y-auto p-4">
-            <table class="w-full text-left text-sm">
-              <thead class="text-slate-400 text-xs uppercase">
-                <tr><th>Mã Voucher</th><th>Mệnh Giá</th><th>Thông Tin Nhận Tiền</th><th>Thao Tác</th></tr>
-              </thead>
-              <tbody id="pendingRequestsBody" class="divide-y divide-slate-700/50">
-                <!-- Render by JS -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Form xác nhận mã -->
-          <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700">
-            <h3 class="font-bold text-white mb-3">Thanh Toán Voucher Thủ Công</h3>
-            <input type="text" id="inputCheckVoucher" placeholder="Nhập mã giảm giá của người dùng... (FARM-...)" class="w-full bg-slate-900 border border-slate-600 text-white px-4 py-2 rounded-xl mb-3 focus:outline-none focus:border-sky-500">
-            <button onclick="checkAndCashVoucher()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-black py-2 rounded-xl transition">Xác Nhận & Thanh Toán</button>
-            <p id="voucherCheckResult" class="mt-3 text-sm font-bold"></p>
+          <!-- Họ và Tên -->
+          <div>
+            <label class="block text-xs font-black text-[#542E14] mb-1">Họ và Tên Chủ Tài Khoản:</label>
+            <input type="text" id="reqName" required placeholder="Tên in hoa không dấu..." uppercase
+                   class="farm-input w-full px-4 py-2 rounded-xl text-sm font-bold uppercase" />
           </div>
 
-          <!-- Bảng thống kê tài chính -->
-          <div class="bg-gradient-to-br from-indigo-900 to-purple-900 p-5 rounded-2xl border border-indigo-500/50 flex flex-col justify-center text-center">
-            <p class="text-indigo-200 font-bold mb-1">Tổng Số Tiền Đã Thanh Toán</p>
-            <h3 class="text-4xl font-black text-white" id="statTotalMoney">0 VNĐ</h3>
-            <p class="text-xs text-indigo-300 mt-2">Tổng hợp từ các mã giảm giá đã duyệt</p>
+          <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl text-[11px] font-bold text-amber-800 text-center">
+            ⚠️ Lưu ý: Thông tin sai lệch sẽ bị admin từ chối. Vui lòng kiểm tra kỹ STK và Tên Ngân Hàng trước khi gửi.
           </div>
-        </div>
 
-        <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
-          <div class="px-4 py-3 bg-slate-700 font-bold border-b border-slate-600">Lịch sử thanh toán voucher</div>
-          <div class="max-h-64 overflow-y-auto p-4">
-            <table class="w-full text-left text-sm">
-              <thead class="text-slate-400 text-xs uppercase">
-                <tr><th>Mã Voucher</th><th>Mệnh Giá</th><th>Người chơi</th><th>Thời gian TT</th></tr>
-              </thead>
-              <tbody id="cashedVouchersBody" class="divide-y divide-slate-700/50">
-                <!-- Render by JS -->
-              </tbody>
-            </table>
-          </div>
+          <!-- Nút Gửi -->
+          <button type="submit" id="btnSubmitRedeem" class="farm-press w-full bg-[#FFAC1C] hover:bg-[#F59E0B] text-[#542E14] font-black py-3 rounded-xl border-2 border-[#542E14] shadow-[0_4px_0_#542E14] text-sm uppercase tracking-wide transition-all duration-200">
+            🚀 Gửi Yêu Cầu Cho Admin
+          </button>
+        </form>
+
+        <div class="mt-4 text-center">
+           <a href="index.html" class="text-xs font-black text-[#3D8E2D] hover:underline">Quay lại cổng game</a>
         </div>
 
       </div>
-
     </div>
   </div>
 
   <script>
-    // Database Storage Keys
-    const USERS_KEY = 'cozy_farm_registered_users';
     const GAME_STATE_PREFIX = 'cozy_farm_v3_state_';
+    const WITHDRAW_KEY = 'cozy_farm_withdraw_requests';
     const ADMIN_DATA_KEY = 'cozy_farm_admin_data';
 
-    // Biến toàn cục chứa dữ liệu Admin
-    let adminData = { codes: [], cashedVouchers: [], totalRevenue: 0 };
-
-    function loadAdminData() {
+    function playSound(type) {
       try {
-        const raw = localStorage.getItem(ADMIN_DATA_KEY);
-        if(raw) { adminData = JSON.parse(raw); }
-      } catch(e){}
-    }
-    
-    function saveAdminData() {
-      localStorage.setItem(ADMIN_DATA_KEY, JSON.stringify(adminData));
+        const synth = new Tone.PolySynth().toDestination();
+        synth.volume.value = -10;
+        if (type === 'success') synth.triggerAttackRelease(["C5", "E5", "G5"], "16n");
+        if (type === 'error') synth.triggerAttackRelease(["F4", "C4"], "8n");
+      } catch(e) {}
     }
 
-    function loginAdmin() {
-      const p = document.getElementById('adminPass').value;
-      if (p === 'admin') {
-        document.getElementById('adminLogin').classList.add('hidden');
-        document.getElementById('adminDashboard').classList.remove('hidden');
-        loadAdminData();
-        renderUsers();
-      } else {
-        alert("Sai mật khẩu quản trị!");
-      }
-    }
-
-    function switchTab(tabId) {
-      document.getElementById('tabUsers').classList.add('hidden');
-      document.getElementById('tabCodes').classList.add('hidden');
-      document.getElementById('tabVouchers').classList.add('hidden');
+    function submitRedeemRequest(e) {
+      e.preventDefault();
       
-      const btns = ['btnTabUsers', 'btnTabCodes', 'btnTabVouchers'];
-      btns.forEach(b => {
-        document.getElementById(b).className = "w-full text-left px-4 py-2 rounded-lg font-bold text-slate-400 hover:bg-slate-700 hover:text-white transition";
-      });
+      const code = document.getElementById('reqCode').value.trim().toUpperCase();
+      const bank = document.getElementById('reqBank').value.trim();
+      const phone = document.getElementById('reqPhone').value.trim();
+      const stk = document.getElementById('reqStk').value.trim();
+      const fullName = document.getElementById('reqName').value.trim().toUpperCase();
 
-      document.getElementById('tab' + tabId.charAt(0).toUpperCase() + tabId.slice(1)).classList.remove('hidden');
+      // 1. Đọc dữ liệu hệ thống
+      let adminData = { cashedVouchers: [] };
+      try { adminData = JSON.parse(localStorage.getItem(ADMIN_DATA_KEY)) || {cashedVouchers:[]}; } catch(e){}
       
-      const activeBtn = document.getElementById('btnTab' + tabId.charAt(0).toUpperCase() + tabId.slice(1));
-      activeBtn.className = "w-full text-left px-4 py-2 rounded-lg font-bold bg-sky-600 text-white transition";
+      let requests = [];
+      try { requests = JSON.parse(localStorage.getItem(WITHDRAW_KEY)) || []; } catch(e){}
 
-      if(tabId === 'users') renderUsers();
-      if(tabId === 'codes') renderCodes();
-      if(tabId === 'vouchers') { renderVouchers(); renderPendingRequests(); }
-    }
-
-    // TÍNH NĂNG: XEM NGƯỜI CHƠI
-    function renderUsers() {
-      let users = [];
-      try { users = JSON.parse(localStorage.getItem(USERS_KEY)) || []; } catch(e){}
-      
-      const tbody = document.getElementById('userTableBody');
-      tbody.innerHTML = '';
-      
-      users.forEach(u => {
-        // Đọc state của user này
-        let gold = 0; let copper = 0; let level = 1;
-        try {
-          const state = JSON.parse(localStorage.getItem(GAME_STATE_PREFIX + u.username));
-          if(state) { gold = state.goldCoins; copper = state.copperCoins; level = state.level; }
-        } catch(e){}
-
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-750";
-        tr.innerHTML = `
-          <td class="px-4 py-3"><div class="font-bold text-white">${u.username}</div><div class="text-[10px] text-slate-400">${u.email}</div></td>
-          <td class="px-4 py-3 text-emerald-400 font-bold">Lv.${level}</td>
-          <td class="px-4 py-3 text-amber-400 font-bold">${gold}</td>
-          <td class="px-4 py-3 text-amber-600 font-bold">${copper}</td>
-          <td class="px-4 py-3 text-right">
-            <button onclick="changeUserPass('${u.username}')" class="text-xs bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded">Đổi MK</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    window.changeUserPass = function(username) {
-      let users = [];
-      try { users = JSON.parse(localStorage.getItem(USERS_KEY)) || []; } catch(e){}
-      
-      const newPass = prompt(`Nhập mật khẩu mới cho tài khoản ${username}:`);
-      if(newPass) {
-        const idx = users.findIndex(u => u.username === username);
-        if(idx !== -1) {
-          users[idx].password = newPass;
-          localStorage.setItem(USERS_KEY, JSON.stringify(users));
-          alert('Đổi mật khẩu thành công!');
-        }
-      }
-    };
-
-    // TÍNH NĂNG: TẠO CODE
-    window.generateCustomCode = function(type, inputId) {
-      const val = parseInt(document.getElementById(inputId).value);
-      if (isNaN(val) || val <= 0) {
-        alert("Vui lòng nhập số lượng hợp lệ lớn hơn 0!");
-        return;
-      }
-      
-      const prefix = type === 'COPPER' ? 'CU-' : (type === 'GOLD' ? 'GD-' : (type === 'AUTO_HARVEST' ? 'AH-' : 'AP-'));
-      const randomStr = Math.random().toString(36).substring(2, 7).toUpperCase();
-      const code = prefix + val + '-' + randomStr;
-      
-      if (!adminData.codes) adminData.codes = [];
-      adminData.codes.push({
-        code: code,
-        type: type,
-        value: val,
-        createdAt: new Date().toLocaleString('vi-VN'),
-        isUsed: false,
-        usedBy: null
-      });
-      
-      saveAdminData();
-      renderCodes();
-    };
-
-    function renderCodes() {
-      const tbody = document.getElementById('codesTableBody');
-      tbody.innerHTML = '';
-      
-      if (!adminData.codes) return;
-      const reversed = [...adminData.codes].reverse();
-      reversed.forEach(c => {
-        let unit = c.type === 'COPPER' ? ' 🟤' : (c.type === 'GOLD' ? ' 🪙' : ' Giờ');
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="py-2 text-white font-bold">${c.code}</td>
-          <td class="py-2 text-sky-300 text-xs">${c.type}</td>
-          <td class="py-2 text-amber-300 font-bold">${c.value}${unit}</td>
-          <td class="py-2">
-            ${c.isUsed ? `<span class="text-red-400 text-xs">Đã dùng (${c.usedBy})</span>` : `<span class="text-emerald-400 text-xs">Chưa dùng</span>`}
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    // TÍNH NĂNG: ĐỐI SOÁT VOUCHER THỦ CÔNG
-    window.checkAndCashVoucher = function() {
-      const input = document.getElementById('inputCheckVoucher');
-      const codeToCheck = (input.value || '').trim().toUpperCase();
-      const resultTxt = document.getElementById('voucherCheckResult');
-      
-      if(!codeToCheck) return;
-
-      // 1. Kiểm tra xem code này đã được thanh toán chưa
-      if(adminData.cashedVouchers && adminData.cashedVouchers.some(v => v.code === codeToCheck)) {
-        resultTxt.textContent = "❌ Mã này ĐÃ ĐƯỢC THANH TOÁN trước đó!";
-        resultTxt.className = "mt-3 text-sm font-bold text-red-400";
+      // 2. Kiểm tra xem mã đã bị Admin gạch (thanh toán) chưa?
+      if (adminData.cashedVouchers && adminData.cashedVouchers.some(v => v.code === code)) {
+        playSound('error');
+        alert("❌ Mã Voucher này đã được thanh toán rồi!");
         return;
       }
 
-      // 2. Tìm mã trong TOÀN BỘ dữ liệu người dùng
+      // 3. Kiểm tra xem mã này đã được gửi yêu cầu và đang chờ duyệt chưa?
+      if (requests.some(r => r.code === code && r.status === 'pending')) {
+        playSound('error');
+        alert("⏳ Mã này đang trong danh sách chờ Admin duyệt. Xin vui lòng kiên nhẫn!");
+        return;
+      }
+
+      // 4. Quét toàn bộ LocalStorage để xác thực xem mã này CÓ THẬT SỰ TỒN TẠI trong tài khoản người chơi không
       let foundVoucher = null;
       let voucherOwner = '';
 
@@ -362,7 +171,7 @@
           let state = null;
           try { state = JSON.parse(localStorage.getItem(key)); } catch(e){}
           if (state && state.redeemedHistory) {
-            const v = state.redeemedHistory.find(item => item.code === codeToCheck);
+            const v = state.redeemedHistory.find(item => item.code === code);
             if (v) {
               foundVoucher = v;
               voucherOwner = state.username || key.replace(GAME_STATE_PREFIX, '');
@@ -372,130 +181,165 @@
         }
       }
 
-      if(foundVoucher) {
-        // Phân tích giá trị. "5K" -> 5000
-        const valueNum = parseInt(foundVoucher.value.replace('K', '')) * 1000;
-        
-        // Lưu vào danh sách đã thanh toán
-        if(!adminData.cashedVouchers) adminData.cashedVouchers = [];
-        adminData.cashedVouchers.push({
-          code: codeToCheck,
-          value: valueNum,
-          owner: voucherOwner,
-          cashedAt: new Date().toLocaleString('vi-VN')
-        });
-
-        adminData.totalRevenue = (adminData.totalRevenue || 0) + valueNum;
-        saveAdminData();
-
-        resultTxt.textContent = `✅ Thành công! Mã trị giá ${valueNum.toLocaleString()}đ của người chơi ${voucherOwner}. Đã ghi nhận thanh toán.`;
-        resultTxt.className = "mt-3 text-sm font-bold text-emerald-400";
-        input.value = '';
-        renderVouchers();
-      } else {
-        resultTxt.textContent = "❌ Mã không tồn tại trong hệ thống! Đây có thể là mã giả mạo.";
-        resultTxt.className = "mt-3 text-sm font-bold text-red-400";
-      }
-    };
-
-    function renderVouchers() {
-      const tbody = document.getElementById('cashedVouchersBody');
-      tbody.innerHTML = '';
-      
-      const history = adminData.cashedVouchers || [];
-      const reversed = [...history].reverse();
-      
-      reversed.forEach(v => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="py-2 text-white font-bold">${v.code}</td>
-          <td class="py-2 text-amber-400 font-bold">${v.value.toLocaleString()}đ</td>
-          <td class="py-2 text-slate-300 text-xs">${v.owner}</td>
-          <td class="py-2 text-slate-400 text-[10px]">${v.cashedAt}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      document.getElementById('statTotalMoney').textContent = (adminData.totalRevenue || 0).toLocaleString() + ' VNĐ';
-    }
-
-    // TÍNH NĂNG: DUYỆT YÊU CẦU RÚT TIỀN TỪ REDEEM.HTML
-    function renderPendingRequests() {
-      let requests = [];
-      try { requests = JSON.parse(localStorage.getItem('cozy_farm_withdraw_requests')) || []; } catch(e){}
-      
-      const pendingList = requests.filter(r => r.status === 'pending');
-      document.getElementById('pendingCount').textContent = pendingList.length;
-      
-      const tbody = document.getElementById('pendingRequestsBody');
-      tbody.innerHTML = '';
-      
-      if (pendingList.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-slate-500">Không có yêu cầu nào đang chờ duyệt.</td></tr>';
+      if (!foundVoucher) {
+        playSound('error');
+        alert("❌ Mã Voucher không tồn tại trong hệ thống! Vui lòng kiểm tra lại mã.");
         return;
       }
 
-      pendingList.forEach(r => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="py-2 text-white font-bold">
-            ${r.code}<br>
-            <span class="text-[10px] text-slate-400">TK: ${r.playerAccount}</span>
-          </td>
-          <td class="py-2 text-amber-400 font-black text-lg">${r.value.toLocaleString()}đ</td>
-          <td class="py-2 text-xs text-sky-200">
-            <div>Ngân hàng: <span class="font-bold text-white">${r.bank}</span></div>
-            <div>STK: <span class="font-bold text-white">${r.stk}</span></div>
-            <div>Tên: <span class="font-bold text-white">${r.fullName}</span></div>
-            <div>SĐT: <span class="font-bold text-white">${r.phone}</span></div>
-          </td>
-          <td class="py-2">
-            <button onclick="approveRequest('${r.id}', '${r.code}', ${r.value}, '${r.playerAccount}')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-2 py-1.5 rounded mb-1 w-full">Duyệt & CK</button>
-            <button onclick="rejectRequest('${r.id}')" class="bg-red-900 hover:bg-red-700 text-white text-xs font-bold px-2 py-1 rounded w-full">Từ chối</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
+      // 5. Nếu hợp lệ -> Đưa vào danh sách chờ duyệt
+      const valueNum = parseInt(foundVoucher.value.replace('K', '')) * 1000;
+      
+      const newRequest = {
+        id: 'REQ-' + Math.random().toString(36).substr(2, 6).toUpperCase(),
+        code: code,
+        value: valueNum,
+        playerAccount: voucherOwner,
+        fullName: fullName,
+        bank: bank,
+        stk: stk,
+        phone: phone,
+        status: 'pending', // pending, approved, rejected
+        createdAt: new Date().toLocaleString('vi-VN')
+      };
+
+      requests.push(newRequest);
+      localStorage.setItem(WITHDRAW_KEY, JSON.stringify(requests));
+
+      // Lưu lại thông tin thanh toán cho lần sau (Tên, Ngân hàng, STK, SĐT)
+      const profileToSave = {
+        bank: bank,
+        phone: phone,
+        stk: stk,
+        fullName: fullName
+      };
+      localStorage.setItem('cozy_farm_withdraw_profile', JSON.stringify(profileToSave));
+
+      playSound('success');
+      alert(`✅ Gửi yêu cầu rút ${valueNum.toLocaleString()} VNĐ thành công!\nVui lòng chờ Admin đối soát và chuyển khoản.`);
+      
+      // Reset form
+      document.getElementById('formRedeem').reset();
+      document.getElementById('voucherInfoBox').classList.add('hidden');
     }
 
-    window.approveRequest = function(reqId, code, value, owner) {
-      if(!confirm(`Xác nhận đã chuyển khoản ${value.toLocaleString()}đ cho tài khoản này?`)) return;
+    // --- Tự động tải thông tin đã lưu khi vào trang ---
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        const savedProfile = JSON.parse(localStorage.getItem('cozy_farm_withdraw_profile'));
+        if (savedProfile) {
+          if(savedProfile.bank) document.getElementById('reqBank').value = savedProfile.bank;
+          if(savedProfile.phone) document.getElementById('reqPhone').value = savedProfile.phone;
+          if(savedProfile.stk) document.getElementById('reqStk').value = savedProfile.stk;
+          if(savedProfile.fullName) document.getElementById('reqName').value = savedProfile.fullName;
+        }
+      } catch(e){}
+    });
+
+    // --- Lắng nghe sự kiện gõ mã Voucher để kiểm tra ngay lập tức ---
+    document.getElementById('reqCode').addEventListener('input', function(e) {
+      const code = e.target.value.trim().toUpperCase();
+      const infoBox = document.getElementById('voucherInfoBox');
+      const infoOwner = document.getElementById('infoOwner');
+      const infoValue = document.getElementById('infoValue');
+      const btnSubmit = document.getElementById('btnSubmitRedeem');
+
+      // Các class màu sắc cho các trạng thái
+      const bgClasses = ['bg-emerald-50', 'bg-red-50', 'bg-amber-50', 'bg-slate-100'];
+      const borderClasses = ['border-emerald-200', 'border-red-200', 'border-amber-200', 'border-slate-300'];
       
-      let requests = [];
-      try { requests = JSON.parse(localStorage.getItem('cozy_farm_withdraw_requests')) || []; } catch(e){}
-      const reqIdx = requests.findIndex(r => r.id === reqId);
-      if(reqIdx > -1) {
-        requests[reqIdx].status = 'approved';
-        localStorage.setItem('cozy_farm_withdraw_requests', JSON.stringify(requests));
+      if (code.length < 5) {
+        infoBox.classList.add('hidden');
+        btnSubmit.disabled = false;
+        btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed', 'grayscale');
+        return;
       }
 
-      // Lưu vào lịch sử đã thanh toán của Admin
-      if(!adminData.cashedVouchers) adminData.cashedVouchers = [];
-      adminData.cashedVouchers.push({
-        code: code,
-        value: value,
-        owner: owner,
-        cashedAt: new Date().toLocaleString('vi-VN')
-      });
-      adminData.totalRevenue = (adminData.totalRevenue || 0) + value;
-      saveAdminData();
-      
-      renderPendingRequests();
-      renderVouchers();
-      alert('Đã duyệt thành công!');
-    };
+      let foundVoucher = null;
+      let voucherOwner = '';
 
-    window.rejectRequest = function(reqId) {
-      if(!confirm(`Bạn muốn TỪ CHỐI yêu cầu rút tiền này?`)) return;
-      let requests = [];
-      try { requests = JSON.parse(localStorage.getItem('cozy_farm_withdraw_requests')) || []; } catch(e){}
-      const reqIdx = requests.findIndex(r => r.id === reqId);
-      if(reqIdx > -1) {
-        requests[reqIdx].status = 'rejected';
-        localStorage.setItem('cozy_farm_withdraw_requests', JSON.stringify(requests));
+      // 1. Tìm mã trong dữ liệu của tất cả người chơi
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith(GAME_STATE_PREFIX)) {
+          let state = null;
+          try { state = JSON.parse(localStorage.getItem(key)); } catch(err){}
+          if (state && state.redeemedHistory) {
+            const v = state.redeemedHistory.find(item => item.code === code);
+            if (v) {
+              foundVoucher = v;
+              voucherOwner = state.username || key.replace(GAME_STATE_PREFIX, '');
+              break;
+            }
+          }
+        }
       }
-      renderPendingRequests();
-    };
+
+      // 2. Lấy dữ liệu từ Admin và danh sách chờ duyệt
+      let adminData = { cashedVouchers: [] };
+      try { adminData = JSON.parse(localStorage.getItem(ADMIN_DATA_KEY)) || {cashedVouchers:[]}; } catch(err){}
+      
+      let requests = [];
+      try { requests = JSON.parse(localStorage.getItem(WITHDRAW_KEY)) || []; } catch(err){}
+
+      // Xóa màu cũ
+      infoBox.classList.remove(...bgClasses, ...borderClasses, 'hidden', 'scale-95', 'opacity-0');
+      infoBox.classList.add('scale-100', 'opacity-100');
+
+      if (foundVoucher) {
+        const valueNum = parseInt(foundVoucher.value.replace('K', '')) * 1000;
+        infoValue.textContent = valueNum.toLocaleString();
+
+        const isCashed = adminData.cashedVouchers && adminData.cashedVouchers.some(v => v.code === code);
+        const isPending = requests.some(r => r.code === code && r.status === 'pending');
+
+        if (isCashed) {
+          // Trạng thái: Đã Thanh Toán
+          infoBox.classList.add('bg-slate-100', 'border-slate-300');
+          infoOwner.parentElement.querySelector('span:first-child').className = "text-[10px] uppercase font-black text-slate-500 mb-0.5";
+          infoOwner.className = "text-sm font-black text-slate-700 flex items-center gap-1";
+          infoOwner.innerHTML = `👤 ${voucherOwner} <span class="ml-1 text-[9px] bg-slate-500 text-white px-1.5 py-0.5 rounded uppercase">Đã Thanh Toán</span>`;
+          
+          btnSubmit.disabled = true;
+          btnSubmit.classList.add('opacity-50', 'cursor-not-allowed', 'grayscale');
+          btnSubmit.innerHTML = "❌ Mã Này Đã Được Thanh Toán";
+
+        } else if (isPending) {
+          // Trạng thái: Đang Chờ Duyệt
+          infoBox.classList.add('bg-amber-50', 'border-amber-200');
+          infoOwner.parentElement.querySelector('span:first-child').className = "text-[10px] uppercase font-black text-amber-600 mb-0.5";
+          infoOwner.className = "text-sm font-black text-amber-900 flex items-center gap-1";
+          infoOwner.innerHTML = `👤 ${voucherOwner} <span class="ml-1 text-[9px] bg-amber-500 text-white px-1.5 py-0.5 rounded uppercase">Đang Chờ Duyệt</span>`;
+          
+          btnSubmit.disabled = true;
+          btnSubmit.classList.add('opacity-50', 'cursor-not-allowed', 'grayscale');
+          btnSubmit.innerHTML = "⏳ Mã Đang Chờ Admin Duyệt";
+
+        } else {
+          // Trạng thái: Hợp lệ & Sẵn sàng
+          infoBox.classList.add('bg-emerald-50', 'border-emerald-200');
+          infoOwner.parentElement.querySelector('span:first-child').className = "text-[10px] uppercase font-black text-emerald-600 mb-0.5";
+          infoOwner.className = "text-sm font-black text-emerald-900 flex items-center gap-1";
+          infoOwner.innerHTML = `👤 ${voucherOwner} <span class="ml-1 text-[9px] bg-emerald-500 text-white px-1.5 py-0.5 rounded uppercase">Hợp Lệ</span>`;
+          
+          btnSubmit.disabled = false;
+          btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed', 'grayscale');
+          btnSubmit.innerHTML = "🚀 Gửi Yêu Cầu Cho Admin";
+        }
+        
+      } else {
+        // Trạng thái: Mã không tồn tại
+        infoValue.textContent = "0";
+        infoBox.classList.add('bg-red-50', 'border-red-200');
+        infoOwner.parentElement.querySelector('span:first-child').className = "text-[10px] uppercase font-black text-red-600 mb-0.5";
+        infoOwner.className = "text-sm font-black text-red-900 flex items-center gap-1";
+        infoOwner.innerHTML = `❌ Không tồn tại`;
+
+        btnSubmit.disabled = true;
+        btnSubmit.classList.add('opacity-50', 'cursor-not-allowed', 'grayscale');
+        btnSubmit.innerHTML = "⚠️ Mã Không Hợp Lệ";
+      }
+    });
   </script>
 </body>
 </html>

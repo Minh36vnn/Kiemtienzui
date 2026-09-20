@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Nông Trại 2.5D</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { font-family: 'Nunito', sans-serif !important; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #1e293b; border-radius: 6px; }
+    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 6px; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-200 min-h-screen">
+
+  <!-- LOGIN KHU VỰC ADMIN -->
+  <div id="adminLogin" class="fixed inset-0 z-50 bg-slate-900 flex items-center justify-center">
+    <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700 shadow-2xl w-full max-w-sm text-center">
+      <div class="text-4xl mb-4">🛡️</div>
+      <h2 class="text-xl font-black text-white mb-4">CỔNG QUẢN TRỊ ADMIN</h2>
+      <input type="password" id="adminPass" placeholder="Mật khẩu (Gợi ý: admin)" class="w-full bg-slate-900 border border-slate-600 text-white px-4 py-2 rounded-xl mb-4 focus:outline-none focus:border-sky-500 text-center font-bold">
+      <button onclick="loginAdmin()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-black py-2 rounded-xl transition">Truy Cập</button>
+    </div>
+  </div>
+
+  <div id="adminDashboard" class="hidden flex h-screen overflow-hidden">
+    <!-- SIDEBAR -->
+    <div class="w-64 bg-slate-800 border-r border-slate-700 flex flex-col">
+      <div class="p-5 border-b border-slate-700 text-center">
+        <h1 class="text-xl font-black text-white tracking-wider">FARM<span class="text-sky-500">ADMIN</span></h1>
+      </div>
+      <nav class="flex-1 p-4 space-y-2">
+        <button onclick="switchTab('users')" id="btnTabUsers" class="w-full text-left px-4 py-2 rounded-lg font-bold bg-sky-600 text-white transition">🧑‍🌾 Người Chơi</button>
+        <button onclick="switchTab('codes')" id="btnTabCodes" class="w-full text-left px-4 py-2 rounded-lg font-bold text-slate-400 hover:bg-slate-700 hover:text-white transition">🎟️ Tạo Mã Code</button>
+        <button onclick="switchTab('vouchers')" id="btnTabVouchers" class="w-full text-left px-4 py-2 rounded-lg font-bold text-slate-400 hover:bg-slate-700 hover:text-white transition">🎁 Đối Soát Quà</button>
+      </nav>
+      <div class="p-4 border-t border-slate-700">
+        <button onclick="location.reload()" class="w-full text-left px-4 py-2 text-sm text-red-400 hover:text-red-300 font-bold">Thoát Admin</button>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-1 overflow-y-auto p-6 bg-slate-900">
+      
+      <!-- TAB USERS -->
+      <div id="tabUsers" class="space-y-4">
+        <h2 class="text-2xl font-black text-white mb-4">Danh sách chủ vườn</h2>
+        <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-700 text-slate-300">
+              <tr>
+                <th class="px-4 py-3 font-bold">Tài khoản</th>
+                <th class="px-4 py-3 font-bold">Cấp độ</th>
+                <th class="px-4 py-3 font-bold">Đồng Vàng 🪙</th>
+                <th class="px-4 py-3 font-bold">Đồng Bạc 🟤</th>
+                <th class="px-4 py-3 font-bold text-right">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="userTableBody" class="divide-y divide-slate-700/50">
+              <!-- Render by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB CODES (Tạo code vật phẩm / Đồng bạc) -->
+      <div id="tabCodes" class="hidden space-y-6">
+        <h2 class="text-2xl font-black text-white mb-2">Trung Tâm Phát Hành Code</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 flex flex-col justify-between">
+            <div>
+              <div class="text-3xl mb-2">🟤</div>
+              <h3 class="font-bold text-white mb-1">Code Đồng Bạc</h3>
+              <p class="text-[10px] text-slate-400 mb-3">Tùy chọn số lượng bạc.</p>
+            </div>
+            <div class="flex gap-2">
+              <input type="number" id="valCopper" value="50" min="1" class="w-full bg-slate-900 border border-slate-600 text-white px-2 py-1.5 rounded-lg text-sm text-center">
+              <button onclick="generateCustomCode('COPPER', 'valCopper')" class="shrink-0 bg-amber-700 hover:bg-amber-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">Tạo</button>
+            </div>
+          </div>
+
+          <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 flex flex-col justify-between">
+            <div>
+              <div class="text-3xl mb-2">🪙</div>
+              <h3 class="font-bold text-white mb-1">Code Đồng Vàng</h3>
+              <p class="text-[10px] text-slate-400 mb-3">Tặng vốn cho người chơi.</p>
+            </div>
+            <div class="flex gap-2">
+              <input type="number" id="valGold" value="1000" min="1" class="w-full bg-slate-900 border border-slate-600 text-white px-2 py-1.5 rounded-lg text-sm text-center">
+              <button onclick="generateCustomCode('GOLD', 'valGold')" class="shrink-0 bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg">Tạo</button>
+            </div>
+          </div>
+
+          <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 flex flex-col justify-between">
+            <div>
+              <div class="text-3xl mb-2">🧺</div>
+              <h3 class="font-bold text-white mb-1">Auto Thu Hoạch</h3>
+              <p class="text-[10px] text-slate-400 mb-3">Nhập số giờ tự động.</p>
+            </div>
+            <div class="flex gap-2">
+              <input type="number" id="valHarvest" value="12" min="1" class="w-full bg-slate-900 border border-slate-600 text-white px-2 py-1.5 rounded-lg text-sm text-center">
+              <button onclick="generateCustomCode('AUTO_HARVEST', 'valHarvest')" class="shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg">Tạo</button>
+            </div>
+          </div>
+
+          <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 flex flex-col justify-between">
+            <div>
+              <div class="text-3xl mb-2">🌱</div>
+              <h3 class="font-bold text-white mb-1">Auto Gieo Hạt</h3>
+              <p class="text-[10px] text-slate-400 mb-3">Nhập số giờ tự động.</p>
+            </div>
+            <div class="flex gap-2">
+              <input type="number" id="valPlant" value="12" min="1" class="w-full bg-slate-900 border border-slate-600 text-white px-2 py-1.5 rounded-lg text-sm text-center">
+              <button onclick="generateCustomCode('AUTO_PLANT', 'valPlant')" class="shrink-0 bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg">Tạo</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
+          <div class="px-4 py-3 bg-slate-700 font-bold border-b border-slate-600">Danh sách mã đã tạo</div>
+          <div class="max-h-64 overflow-y-auto p-4">
+            <table class="w-full text-left text-sm">
+              <thead class="text-slate-400 text-xs uppercase">
+                <tr><th>Mã Code</th><th>Loại</th><th>Trị giá</th><th>Tình trạng</th></tr>
+              </thead>
+              <tbody id="codesTableBody" class="divide-y divide-slate-700/50">
+                <!-- Render by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB VOUCHERS (Đối soát mã do người chơi đổi từ Đồng Vàng) -->
+      <div id="tabVouchers" class="hidden space-y-6">
+        <h2 class="text-2xl font-black text-white mb-2">Đối Soát Mã Khuyến Mãi</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Form xác nhận mã -->
+          <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700">
+            <h3 class="font-bold text-white mb-3">Thanh Toán Voucher</h3>
+            <input type="text" id="inputCheckVoucher" placeholder="Nhập mã giảm giá của người dùng... (FARM-...)" class="w-full bg-slate-900 border border-slate-600 text-white px-4 py-2 rounded-xl mb-3 focus:outline-none focus:border-sky-500">
+            <button onclick="checkAndCashVoucher()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-black py-2 rounded-xl transition">Xác Nhận & Thanh Toán</button>
+            <p id="voucherCheckResult" class="mt-3 text-sm font-bold"></p>
+          </div>
+
+          <!-- Bảng thống kê tài chính -->
+          <div class="bg-gradient-to-br from-indigo-900 to-purple-900 p-5 rounded-2xl border border-indigo-500/50 flex flex-col justify-center text-center">
+            <p class="text-indigo-200 font-bold mb-1">Tổng Số Tiền Đã Thanh Toán</p>
+            <h3 class="text-4xl font-black text-white" id="statTotalMoney">0 VNĐ</h3>
+            <p class="text-xs text-indigo-300 mt-2">Tổng hợp từ các mã giảm giá 5k, 10k, 20k, 50k, 100k</p>
+          </div>
+        </div>
+
+        <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
+          <div class="px-4 py-3 bg-slate-700 font-bold border-b border-slate-600">Lịch sử thanh toán voucher</div>
+          <div class="max-h-64 overflow-y-auto p-4">
+            <table class="w-full text-left text-sm">
+              <thead class="text-slate-400 text-xs uppercase">
+                <tr><th>Mã Voucher</th><th>Mệnh Giá</th><th>Người chơi</th><th>Thời gian TT</th></tr>
+              </thead>
+              <tbody id="cashedVouchersBody" class="divide-y divide-slate-700/50">
+                <!-- Render by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // Database Storage Keys
+    const USERS_KEY = 'cozy_farm_registered_users';
+    const GAME_STATE_PREFIX = 'cozy_farm_v3_state_';
+    const ADMIN_DATA_KEY = 'cozy_farm_admin_data';
+
+    // Biến toàn cục chứa dữ liệu Admin
+    let adminData = { codes: [], cashedVouchers: [], totalRevenue: 0 };
+
+    function loadAdminData() {
+      try {
+        const raw = localStorage.getItem(ADMIN_DATA_KEY);
+        if(raw) { adminData = JSON.parse(raw); }
+      } catch(e){}
+    }
+    
+    function saveAdminData() {
+      localStorage.setItem(ADMIN_DATA_KEY, JSON.stringify(adminData));
+    }
+
+    function loginAdmin() {
+      const p = document.getElementById('adminPass').value;
+      if (p === 'admin') {
+        document.getElementById('adminLogin').classList.add('hidden');
+        document.getElementById('adminDashboard').classList.remove('hidden');
+        loadAdminData();
+        renderUsers();
+      } else {
+        alert("Sai mật khẩu quản trị!");
+      }
+    }
+
+    function switchTab(tabId) {
+      document.getElementById('tabUsers').classList.add('hidden');
+      document.getElementById('tabCodes').classList.add('hidden');
+      document.getElementById('tabVouchers').classList.add('hidden');
+      
+      const btns = ['btnTabUsers', 'btnTabCodes', 'btnTabVouchers'];
+      btns.forEach(b => {
+        document.getElementById(b).className = "w-full text-left px-4 py-2 rounded-lg font-bold text-slate-400 hover:bg-slate-700 hover:text-white transition";
+      });
+
+      document.getElementById('tab' + tabId.charAt(0).toUpperCase() + tabId.slice(1)).classList.remove('hidden');
+      
+      const activeBtn = document.getElementById('btnTab' + tabId.charAt(0).toUpperCase() + tabId.slice(1));
+      activeBtn.className = "w-full text-left px-4 py-2 rounded-lg font-bold bg-sky-600 text-white transition";
+
+      if(tabId === 'users') renderUsers();
+      if(tabId === 'codes') renderCodes();
+      if(tabId === 'vouchers') renderVouchers();
+    }
+
+    // TÍNH NĂNG: XEM NGƯỜI CHƠI
+    function renderUsers() {
+      let users = [];
+      try { users = JSON.parse(localStorage.getItem(USERS_KEY)) || []; } catch(e){}
+      
+      const tbody = document.getElementById('userTableBody');
+      tbody.innerHTML = '';
+      
+      users.forEach(u => {
+        // Đọc state của user này
+        let gold = 0; let copper = 0; let level = 1;
+        try {
+          const state = JSON.parse(localStorage.getItem(GAME_STATE_PREFIX + u.username));
+          if(state) { gold = state.goldCoins; copper = state.copperCoins; level = state.level; }
+        } catch(e){}
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-750";
+        tr.innerHTML = `
+          <td class="px-4 py-3"><div class="font-bold text-white">${u.username}</div><div class="text-[10px] text-slate-400">${u.email}</div></td>
+          <td class="px-4 py-3 text-emerald-400 font-bold">Lv.${level}</td>
+          <td class="px-4 py-3 text-amber-400 font-bold">${gold}</td>
+          <td class="px-4 py-3 text-amber-600 font-bold">${copper}</td>
+          <td class="px-4 py-3 text-right">
+            <button onclick="changeUserPass('${u.username}')" class="text-xs bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded">Đổi MK</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    window.changeUserPass = function(username) {
+      let users = [];
+      try { users = JSON.parse(localStorage.getItem(USERS_KEY)) || []; } catch(e){}
+      
+      const newPass = prompt(`Nhập mật khẩu mới cho tài khoản ${username}:`);
+      if(newPass) {
+        const idx = users.findIndex(u => u.username === username);
+        if(idx !== -1) {
+          users[idx].password = newPass;
+          localStorage.setItem(USERS_KEY, JSON.stringify(users));
+          alert('Đổi mật khẩu thành công!');
+        }
+      }
+    };
+
+    // TÍNH NĂNG: TẠO CODE
+    window.generateCustomCode = function(type, inputId) {
+      const val = parseInt(document.getElementById(inputId).value);
+      if (isNaN(val) || val <= 0) {
+        alert("Vui lòng nhập số lượng hợp lệ lớn hơn 0!");
+        return;
+      }
+      
+      const prefix = type === 'COPPER' ? 'CU-' : (type === 'GOLD' ? 'GD-' : (type === 'AUTO_HARVEST' ? 'AH-' : 'AP-'));
+      const randomStr = Math.random().toString(36).substring(2, 7).toUpperCase();
+      const code = prefix + val + '-' + randomStr;
+      
+      adminData.codes.push({
+        code: code,
+        type: type,
+        value: val,
+        createdAt: new Date().toLocaleString('vi-VN'),
+        isUsed: false,
+        usedBy: null
+      });
+      
+      saveAdminData();
+      renderCodes();
+    };
+
+    function renderCodes() {
+      const tbody = document.getElementById('codesTableBody');
+      tbody.innerHTML = '';
+      
+      const reversed = [...adminData.codes].reverse();
+      reversed.forEach(c => {
+        let unit = c.type === 'COPPER' ? ' 🟤' : (c.type === 'GOLD' ? ' 🪙' : ' Giờ');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="py-2 text-white font-bold">${c.code}</td>
+          <td class="py-2 text-sky-300 text-xs">${c.type}</td>
+          <td class="py-2 text-amber-300 font-bold">${c.value}${unit}</td>
+          <td class="py-2">
+            ${c.isUsed ? `<span class="text-red-400 text-xs">Đã dùng (${c.usedBy})</span>` : `<span class="text-emerald-400 text-xs">Chưa dùng</span>`}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // TÍNH NĂNG: ĐỐI SOÁT VOUCHER
+    window.checkAndCashVoucher = function() {
+      const input = document.getElementById('inputCheckVoucher');
+      const codeToCheck = (input.value || '').trim();
+      const resultTxt = document.getElementById('voucherCheckResult');
+      
+      if(!codeToCheck) return;
+
+      // 1. Kiểm tra xem code này đã được thanh toán chưa
+      if(adminData.cashedVouchers && adminData.cashedVouchers.some(v => v.code === codeToCheck)) {
+        resultTxt.textContent = "❌ Mã này ĐĐÃ ĐƯỢC THANH TOÁN trước đó!";
+        resultTxt.className = "mt-3 text-sm font-bold text-red-400";
+        return;
+      }
+
+      // 2. Tìm mã trong TOÀN BỘ dữ liệu người dùng (Quét toàn bộ LocalStorage để chống sót mã)
+      let foundVoucher = null;
+      let voucherOwner = '';
+
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith(GAME_STATE_PREFIX)) {
+          let state = null;
+          try { state = JSON.parse(localStorage.getItem(key)); } catch(e){}
+          if (state && state.redeemedHistory) {
+            const v = state.redeemedHistory.find(item => item.code === codeToCheck);
+            if (v) {
+              foundVoucher = v;
+              voucherOwner = state.username || key.replace(GAME_STATE_PREFIX, '');
+              break; // Tìm thấy thì dừng
+            }
+          }
+        }
+      }
+
+      if(foundVoucher) {
+        // Phân tích giá trị. "5K" -> 5000
+        const valueNum = parseInt(foundVoucher.value.replace('K', '')) * 1000;
+        
+        // Lưu vào danh sách đã thanh toán
+        if(!adminData.cashedVouchers) adminData.cashedVouchers = [];
+        adminData.cashedVouchers.push({
+          code: codeToCheck,
+          value: valueNum,
+          owner: voucherOwner,
+          cashedAt: new Date().toLocaleString('vi-VN')
+        });
+
+        adminData.totalRevenue = (adminData.totalRevenue || 0) + valueNum;
+        saveAdminData();
+
+        resultTxt.textContent = `✅ Thành công! Mã trị giá ${valueNum.toLocaleString()}đ của người chơi ${voucherOwner}. Đã ghi nhận thanh toán.`;
+        resultTxt.className = "mt-3 text-sm font-bold text-emerald-400";
+        input.value = '';
+        renderVouchers();
+      } else {
+        resultTxt.textContent = "❌ Mã không tồn tại trong hệ thống! Đây có thể là mã giả mạo.";
+        resultTxt.className = "mt-3 text-sm font-bold text-red-400";
+      }
+    };
+
+    function renderVouchers() {
+      const tbody = document.getElementById('cashedVouchersBody');
+      tbody.innerHTML = '';
+      
+      const history = adminData.cashedVouchers || [];
+      const reversed = [...history].reverse();
+      
+      reversed.forEach(v => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="py-2 text-white font-bold">${v.code}</td>
+          <td class="py-2 text-amber-400 font-bold">${v.value.toLocaleString()}đ</td>
+          <td class="py-2 text-slate-300 text-xs">${v.owner}</td>
+          <td class="py-2 text-slate-400 text-[10px]">${v.cashedAt}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('statTotalMoney').textContent = (adminData.totalRevenue || 0).toLocaleString() + ' VNĐ';
+    }
+  </script>
+</body>
+</html>
